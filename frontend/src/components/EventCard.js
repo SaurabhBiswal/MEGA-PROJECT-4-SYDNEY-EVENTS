@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Calendar, MapPin, ExternalLink, Heart, Share2 } from 'lucide-react';
+import { Calendar, MapPin, ExternalLink, Heart, Share2, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
@@ -64,9 +64,30 @@ const EventCard = ({ event, onGetTickets }) => {
 
             <div className="p-5 flex-grow flex flex-col">
                 <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-bold text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors">
-                        {event.title}
-                    </h3>
+                    <div className="flex-1">
+                        <h3 className="text-lg font-bold text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors">
+                            {event.title}
+                        </h3>
+                        {/* Rating Display */}
+                        {event.averageRating > 0 && (
+                            <div className="flex items-center gap-1 mt-1">
+                                <div className="flex">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star
+                                            key={star}
+                                            className={`h-4 w-4 ${star <= Math.round(event.averageRating)
+                                                    ? 'text-yellow-400 fill-yellow-400'
+                                                    : 'text-gray-300'
+                                                }`}
+                                        />
+                                    ))}
+                                </div>
+                                <span className="text-xs text-gray-600">
+                                    {event.averageRating.toFixed(1)} ({event.reviewCount})
+                                </span>
+                            </div>
+                        )}
+                    </div>
                     <span className="text-green-600 font-bold text-sm whitespace-nowrap ml-2">
                         {event.price}
                     </span>
