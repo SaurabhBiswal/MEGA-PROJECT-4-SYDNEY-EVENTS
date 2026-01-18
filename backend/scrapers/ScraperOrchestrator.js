@@ -1,11 +1,10 @@
 import EventbriteScraper from '../scrapers/EventbriteScraper.js';
-import TimeOutSydneyScraper from '../scrapers/TimeOutSydneyScraper.js';
+import EventbriteSydneyScraper from '../scrapers/EventbriteSydneyScraper.js';
 
 class ScraperOrchestrator {
     constructor() {
         this.scrapers = [
-            new EventbriteScraper(),
-            new TimeOutSydneyScraper()
+            new EventbriteSydneyScraper()
         ];
     }
 

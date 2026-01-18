@@ -29,8 +29,8 @@ const ChatWidget = () => {
         setIsLoading(true);
 
         try {
-            
-            
+
+
             const history = messages.slice(-6);
 
             const response = await axios.post('http://localhost:5001/api/chat', {
@@ -84,7 +84,15 @@ const ChatWidget = () => {
                                         : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
                                         }`}
                                 >
-                                    <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+                                    <p
+                                        className="whitespace-pre-wrap leading-relaxed"
+                                        dangerouslySetInnerHTML={{
+                                            __html: msg.text.replace(
+                                                /\[([^\]]+)\]\(([^)]+)\)/g,
+                                                '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline hover:text-blue-300">$1</a>'
+                                            )
+                                        }}
+                                    />
                                 </div>
                             </div>
                         ))}
