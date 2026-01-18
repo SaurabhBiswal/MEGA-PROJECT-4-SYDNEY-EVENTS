@@ -54,5 +54,8 @@ const eventSchema = new mongoose.Schema({
     timestamps: true,
 });
 
+// Create text index for search
+eventSchema.index({ title: 'text', venue: 'text', description: 'text' });
+
 const Event = mongoose.model('Event', eventSchema);
 export default Event;

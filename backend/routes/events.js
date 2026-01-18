@@ -42,13 +42,18 @@ const router = express.Router();
 // Get all events with Filters
 router.get('/', async (req, res) => {
     try {
-        const { category, minPrice, maxPrice, date } = req.query;
+        const { category, minPrice, maxPrice, date, search } = req.query;
 
         // Build Query
         let query = {
             isActive: true,
             date: { $gte: new Date() } // Default: Upcoming events
         };
+
+        // Text search
+        if (search && search.trim()) {
+            query.$text = { $search: search };
+        }
 
         if (category && category !== 'All') {
             query.category = category;
