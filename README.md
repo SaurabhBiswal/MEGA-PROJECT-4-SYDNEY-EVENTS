@@ -2,12 +2,17 @@
 
 A Full-Stack Event Discovery Platform featuring **AI-powered recommendations** and **automated web scraping** for real-time Sydney event aggregation.
 
+### 🌐 Live Demo
+- **Frontend (Live Site):** [https://lively-caramel-47082c.netlify.app/](https://lively-caramel-47082c.netlify.app/)
+- **Backend API:** [https://sydney-events-production.up.railway.app](https://sydney-events-production.up.railway.app)
+- **GitHub Repo:** [https://github.com/SaurabhBiswal/sydney-events](https://github.com/SaurabhBiswal/sydney-events)
+
 ---
 
 ## 🌟 Features
 
 ### Core Functionality
-- 🕷️ **Real-Time Web Scraping**: Automated data extraction from Time Out Sydney using Puppeteer
+- 🕷️ **Real-Time Web Scraping**: Automated data extraction from Eventbrite & Time Out Sydney using Puppeteer
 - 🤖 **AI Chatbot Assistant**: Context-aware NLP chatbot for personalized event recommendations
 - 📧 **Lead Capture System**: Email opt-in modal before ticket redirection
 - 🔄 **Auto-Update Mechanism**: CRON-scheduled daily scraping (2:00 AM)
@@ -16,7 +21,6 @@ A Full-Stack Event Discovery Platform featuring **AI-powered recommendations** a
 
 ### Advanced Features
 - 🚀 **Redis Caching**: Sub-millisecond response times for frequent queries
-- 🐳 **Docker Support**: One-command containerized deployment
 - 🔒 **Fault Tolerance**: Graceful degradation when scraping fails
 - 🎯 **Multi-Source Orchestration**: Aggregates data from multiple event platforms
 
@@ -47,11 +51,11 @@ A Full-Stack Event Discovery Platform featuring **AI-powered recommendations** a
 | **Redis** | Caching Layer | 5.10.0 |
 
 ### DevOps & Tools
-- **Docker** & **Docker Compose**: Containerization
-- **Git**: Version Control
-- **Render**: Backend Hosting
+- **Railway**: Backend Hosting (using Nixpacks)
 - **Netlify**: Frontend Hosting
+- **Cron-Job.org**: Automated Tasks
 - **MongoDB Atlas**: Cloud Database
+- **Git**: Version Control
 
 ---
 
@@ -60,25 +64,25 @@ A Full-Stack Event Discovery Platform featuring **AI-powered recommendations** a
 ```
 ┌─────────────────┐
 │   React SPA     │ ◄─── Tailwind CSS
-│  (Port 3000)    │
+│  (Netlify)      │
 └────────┬────────┘
          │ HTTP/REST
          ▼
 ┌─────────────────┐      ┌──────────────┐
 │  Express API    │◄────►│ Redis Cache  │
-│  (Port 5001)    │      │ (Port 6379)  │
+│  (Railway)      │      │ (Port 6379)  │
 └────────┬────────┘      └──────────────┘
          │
          ├──► MongoDB Atlas (Events DB)
          │
          └──► Puppeteer Scrapers
               ├─ Time Out Sydney
-              └─ Eventbrite (Fallback)
+              └─ Eventbrite (Primary)
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Local Development)
 
 ### Prerequisites
 - Node.js 18+
@@ -89,7 +93,7 @@ A Full-Stack Event Discovery Platform featuring **AI-powered recommendations** a
 
 1. **Clone Repository**
    ```bash
-   git clone https://github.com/yourusername/sydney-events.git
+   git clone https://github.com/SaurabhBiswal/sydney-events.git
    cd sydney-events
    ```
 
@@ -128,19 +132,6 @@ A Full-Stack Event Discovery Platform featuring **AI-powered recommendations** a
 
 ---
 
-## 🐳 Docker Deployment
-
-```bash
-docker-compose up --build
-```
-
-Access:
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:5001`
-- Redis: `localhost:6379`
-
----
-
 ## 📊 API Endpoints
 
 | Method | Endpoint | Description |
@@ -171,19 +162,12 @@ Bot: [Provides booking links for previously mentioned events]
 
 ---
 
-## 🔄 Auto-Update System
+## 🔄 Auto-Update System (Production)
 
-### CRON Schedule
-```javascript
-// Runs daily at 2:00 AM
-'0 2 * * *'
-```
-
-### Update Flow
-1. Scraper fetches fresh data from Time Out Sydney
-2. Duplicate detection (title + date matching)
-3. New events saved to MongoDB
-4. Past events automatically filtered (date < today)
+### CRON Job (via Cron-Job.org)
+- **URL**: `https://sydney-events-production.up.railway.app/api/scrape/events`
+- **Schedule**: Runs daily at 2:00 AM
+- **Result**: Fetches fresh events, matches by title/date, and auto-filters past events.
 
 ---
 
@@ -204,15 +188,6 @@ Bot: [Provides booking links for previously mentioned events]
 - ✅ Input validation on email capture
 - ✅ MongoDB injection prevention (Mongoose)
 - ✅ Rate limiting ready (Redis integration)
-
----
-
-## 📈 Performance Optimizations
-
-1. **Redis Caching**: 1-hour TTL for event lists (20x speed boost)
-2. **Lazy Loading**: Images loaded on-demand
-3. **Code Splitting**: React Router-based chunking
-4. **Database Indexing**: Optimized queries on `date` and `category`
 
 ---
 
@@ -243,7 +218,7 @@ Full-Stack Developer | MERN Specialist
 
 ## 🙏 Acknowledgments
 
-- **Time Out Sydney** for event data
+- **Eventbrite & Time Out Sydney** for event data
 - **Unsplash** for placeholder images
 - **MongoDB Atlas** for cloud database hosting
 
