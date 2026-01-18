@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Filter } from 'lucide-react';
 import EventCard from '../components/EventCard';
-
 
 const API_URL = process.env.REACT_APP_API_URL
     ? `${process.env.REACT_APP_API_URL}/api`
@@ -17,21 +16,36 @@ const Home = () => {
     const [optIn, setOptIn] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
+    // Filter State
+    const [filters, setFilters] = useState({
+        category: 'All',
+        date: 'any',
+    });
+
     useEffect(() => {
         fetchEvents();
-    }, []);
+    }, [filters]); // Re-fetch when filters change
 
     const fetchEvents = async () => {
+        setLoading(true);
         try {
-            const response = await axios.get(`${API_URL}/events`);
+            // Build query params
+            const params = {};
+            if (filters.category !== 'All') params.category = filters.category;
+            if (filters.date !== 'any') params.date = filters.date;
+
+            const response = await axios.get(`${API_URL}/events`, { params });
             setEvents(response.data.data || []);
         } catch (error) {
             console.error('Error fetching events:', error);
-
             setEvents([]);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleFilterChange = (e) => {
+        setFilters({ ...filters, [e.target.name]: e.target.value });
     };
 
     const handleGetTickets = (event) => {
@@ -58,7 +72,6 @@ const Home = () => {
             }
         } catch (error) {
             console.error('Error subscribing:', error);
-
             if (selectedEvent?.sourceUrl) {
                 window.open(selectedEvent.sourceUrl, '_blank');
                 closeModal();
@@ -77,13 +90,49 @@ const Home = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="text-center mb-16">
+            <div className="text-center mb-10">
                 <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
                     Discover Sydney's Best <span className="text-primary-600">Events</span>
                 </h1>
                 <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                     From live music to food festivals, find out what's happening in your city.
                 </p>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-wrap gap-4 items-center justify-center sm:justify-between">
+                <div className="flex items-center gap-2 text-gray-700 font-medium">
+                    <Filter className="h-5 w-5 text-primary-600" />
+                    <span>Filters:</span>
+                </div>
+
+                <div className="flex flex-wrap gap-4">
+                    <select
+                        name="category"
+                        value={filters.category}
+                        onChange={handleFilterChange}
+                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-gray-700"
+                    >
+                        <option value="All">All Categories</option>
+                        <option value="Music">Music</option>
+                        <option value="Food">Food & Drink</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Arts">Arts & Theatre</option>
+                    </select>
+
+                    <select
+                        name="date"
+                        value={filters.date}
+                        onChange={handleFilterChange}
+                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-gray-700"
+                    >
+                        <option value="any">Any Date</option>
+                        <option value="today">Today</option>
+                        <option value="tomorrow">Tomorrow</option>
+                        {/* <option value="weekend">This Weekend</option> */}
+                    </select>
+                </div>
             </div>
 
             {loading ? (
@@ -97,9 +146,9 @@ const Home = () => {
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <h3 className="text-lg font-medium text-gray-900">No events found</h3>
-                    <p className="text-gray-500 mt-2">Check back later or try running the scraper!</p>
+                <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                    <h3 className="text-lg font-medium text-gray-900">No events found matching your filters</h3>
+                    <p className="text-gray-500 mt-2">Try adjusting your category or date selection.</p>
                 </div>
             )}
 
@@ -113,12 +162,10 @@ const Home = () => {
                                 <X className="h-6 w-6" />
                             </button>
                         </div>
-
                         <div className="p-6">
                             <p className="text-gray-600 mb-6">
                                 Enter your email to proceed to <strong>{selectedEvent.title}</strong> booking page.
                             </p>
-
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
@@ -131,7 +178,6 @@ const Home = () => {
                                         autoFocus
                                     />
                                 </div>
-
                                 <label className="flex items-start gap-3 cursor-pointer group">
                                     <div className="flex items-center h-5">
                                         <input
@@ -147,19 +193,9 @@ const Home = () => {
                                 </label>
                             </div>
                         </div>
-
                         <div className="p-6 bg-gray-50 border-t border-gray-100 flex gap-3">
-                            <button
-                                onClick={closeModal}
-                                className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSubmitEmail}
-                                disabled={submitting}
-                                className="flex-1 px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-70 flex justify-center items-center"
-                            >
+                            <button onClick={closeModal} className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                            <button onClick={handleSubmitEmail} disabled={submitting} className="flex-1 px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-70 flex justify-center items-center">
                                 {submitting ? <Loader2 className="animate-spin h-5 w-5" /> : 'Get Tickets'}
                             </button>
                         </div>

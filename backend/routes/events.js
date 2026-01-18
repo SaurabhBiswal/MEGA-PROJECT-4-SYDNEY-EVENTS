@@ -37,10 +37,42 @@ redisClient.on('error', (err) => {
 const router = express.Router();
 
 // Get all events
+// Get all events with Filters
 router.get('/', async (req, res) => {
     try {
+        const { category, minPrice, maxPrice, date } = req.query;
 
-        const cacheKey = 'events_upcoming';
+        // Build Query
+        let query = {
+            isActive: true,
+            date: { $gte: new Date() } // Default: Upcoming events
+        };
+
+        if (category && category !== 'All') {
+            query.category = category;
+        }
+
+        if (date) {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            if (date === 'today') {
+                query.date = {
+                    $gte: new Date(today.setHours(0, 0, 0, 0)),
+                    $lt: new Date(today.setHours(23, 59, 59, 999))
+                };
+            } else if (date === 'tomorrow') {
+                query.date = {
+                    $gte: new Date(tomorrow.setHours(0, 0, 0, 0)),
+                    $lt: new Date(tomorrow.setHours(23, 59, 59, 999))
+                };
+            }
+        }
+
+        // Cache Key based on query
+        const cacheKey = `events_${JSON.stringify(req.query)}`;
+
         try {
             const cachedData = await redisClient.get(cacheKey);
             if (cachedData) {
@@ -52,12 +84,7 @@ router.get('/', async (req, res) => {
             }
         } catch (e) { /* ignore cache errors */ }
 
-
-        const events = await Event.find({
-            isActive: true,
-            date: { $gte: new Date() }
-        }).sort({ date: 1 });
-
+        const events = await Event.find(query).sort({ date: 1 });
 
         try {
             await redisClient.set(cacheKey, JSON.stringify(events), { EX: 3600 });
@@ -65,6 +92,7 @@ router.get('/', async (req, res) => {
 
         res.json({
             success: true,
+            count: events.length,
             data: events,
             source: 'database'
         });
