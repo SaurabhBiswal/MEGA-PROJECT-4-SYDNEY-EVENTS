@@ -3,6 +3,7 @@ import Event from '../models/Event.js';
 import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
 import { sendTicketConfirmationEmail } from '../services/emailService.js';
+import { trackInteraction, getRecommendations } from '../services/recommendationService.js';
 
 
 import { createClient } from 'redis';
@@ -161,6 +162,10 @@ router.post('/:id/favorite', protect, async (req, res) => {
             // Add
             user.favorites.push(eventId);
             await user.save();
+
+            // Track interaction for ML
+            trackInteraction(req.user.id, eventId, 'favorite');
+
             return res.json({ success: true, message: 'Added to favorites', isFavorite: true });
         }
     } catch (error) {
@@ -185,10 +190,33 @@ router.post('/:id/subscribe', async (req, res) => {
             console.error('Email sending failed', e);
         }
 
+        // Track interaction for ML (if user is logged in)
+        if (req.user) {
+            trackInteraction(req.user.id, req.params.id, 'ticket');
+        }
+
         res.json({
             success: true,
             message: 'Successfully subscribed',
             redirectUrl: event.sourceUrl,
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// @desc    Get personalized recommendations
+// @route   GET /api/events/recommendations
+// @access  Private
+router.get('/recommendations', protect, async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 10;
+        const recommendations = await getRecommendations(req.user.id, limit);
+
+        res.json({
+            success: true,
+            count: recommendations.length,
+            data: recommendations
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });

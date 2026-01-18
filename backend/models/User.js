@@ -30,10 +30,19 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Event'
     }],
-    createdAt: {
-        type: Date,
-        default: Date.now
+    preferences: {
+        categories: {
+            type: Map,
+            of: Number,
+            default: new Map()
+        },
+        lastUpdated: {
+            type: Date,
+            default: Date.now
+        }
     }
+}, {
+    timestamps: true
 });
 
 // Encrypt password using bcrypt

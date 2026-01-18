@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { X, Loader2, Filter } from 'lucide-react';
 import EventCard from '../components/EventCard';
+import RecommendedEvents from '../components/RecommendedEvents';
+import AuthContext from '../context/AuthContext';
 
 const API_URL = process.env.REACT_APP_API_URL
     ? `${process.env.REACT_APP_API_URL}/api`
     : 'http://localhost:5001/api';
 
 const Home = () => {
+    const { user } = useContext(AuthContext);
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -134,6 +137,9 @@ const Home = () => {
                     </select>
                 </div>
             </div>
+
+            {/* Recommended Events Section - Only for logged-in users */}
+            {user && <RecommendedEvents onGetTickets={handleGetTickets} />}
 
             {loading ? (
                 <div className="flex justify-center items-center h-64">
