@@ -10,6 +10,7 @@ import scraperRoutes from './routes/scraper.js';
 import chatRoutes from './routes/chat.js';
 import cleanupRoutes from './routes/cleanup.js';
 import './jobs/scheduledScraper.js';
+import { initTelegramBot } from './services/telegramBot.js';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -29,6 +30,7 @@ const connectDB = async () => {
 };
 
 connectDB();
+initTelegramBot();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);

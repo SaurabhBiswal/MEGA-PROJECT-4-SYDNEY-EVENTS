@@ -3,6 +3,7 @@ import ScraperOrchestrator from '../scrapers/ScraperOrchestrator.js';
 import Event from '../models/Event.js';
 import User from '../models/User.js';
 import { sendNewEventAlert } from '../services/emailService.js';
+import { sendTelegramBroadcast } from '../services/telegramBot.js';
 
 // Schedule scraper to run daily at 2:00 AM
 // CRON format: minute hour day month weekday
@@ -35,6 +36,9 @@ cron.schedule('0 2 * * *', async () => {
                     if (users.length > 0) {
                         await sendNewEventAlert(users, newEvent);
                     }
+
+                    // Send Telegram Broadcast
+                    await sendTelegramBroadcast(newEvent);
                 }
             } catch (err) {
                 console.error(`Error saving event: ${eventData.title}`, err.message);
