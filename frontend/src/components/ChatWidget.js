@@ -33,7 +33,7 @@ const ChatWidget = () => {
 
             const history = messages.slice(-6);
 
-            const response = await axios.post('http://localhost:5001/api/chat', {
+            const response = await axios.post('https://sydney-events-production.up.railway.app/api/chat', {
                 message: userMessage,
                 history: history
             });

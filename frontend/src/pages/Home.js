@@ -4,7 +4,7 @@ import { X, Loader2 } from 'lucide-react';
 import EventCard from '../components/EventCard';
 
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = 'https://sydney-events-production.up.railway.app/api';
 
 const Home = () => {
     const [events, setEvents] = useState([]);
@@ -25,7 +25,7 @@ const Home = () => {
             setEvents(response.data.data || []);
         } catch (error) {
             console.error('Error fetching events:', error);
-            
+
             setEvents([]);
         } finally {
             setLoading(false);
@@ -56,7 +56,7 @@ const Home = () => {
             }
         } catch (error) {
             console.error('Error subscribing:', error);
-            
+
             if (selectedEvent?.sourceUrl) {
                 window.open(selectedEvent.sourceUrl, '_blank');
                 closeModal();
