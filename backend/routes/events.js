@@ -195,4 +195,28 @@ router.post('/:id/subscribe', async (req, res) => {
     }
 });
 
+// @desc    Download event as iCal file
+// @route   GET /api/events/:id/calendar
+// @access  Public
+router.get('/:id/calendar', async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.id);
+
+        if (!event) {
+            return res.status(404).json({ success: false, error: 'Event not found' });
+        }
+
+        const { generateICalFile } = await import('../services/calendarService.js');
+        const icalContent = generateICalFile(event);
+
+        // Set headers for file download
+        res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${event.title.replace(/[^a-z0-9]/gi, '_')}.ics"`);
+
+        res.send(icalContent);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 export default router;

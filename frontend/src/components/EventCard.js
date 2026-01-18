@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { Calendar, MapPin, ExternalLink, Heart } from 'lucide-react';
+import React, { useContext, useState } from 'react';
+import { Calendar, MapPin, ExternalLink, Heart, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
@@ -86,14 +86,79 @@ const EventCard = ({ event, onGetTickets }) => {
                     </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-50 mt-auto">
+                <div className="pt-4 border-t border-gray-50 mt-auto flex gap-2">
                     <button
                         onClick={() => onGetTickets(event)}
-                        className="flex items-center justify-center w-full bg-gray-50 hover:bg-blue-600 text-gray-700 hover:text-white py-2.5 rounded-lg transition-all duration-300 font-medium text-sm group-hover:bg-blue-50 group-hover:text-blue-600 cursor-pointer"
+                        className="flex items-center justify-center flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg transition-all duration-300 font-medium text-sm"
                     >
                         <span>Get Tickets</span>
                         <ExternalLink className="h-4 w-4 ml-2" />
                     </button>
+
+                    <div className="relative group/calendar">
+                        <button
+                            className="flex items-center justify-center px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-300 font-medium text-sm"
+                            title="Add to Calendar"
+                        >
+                            <Calendar className="h-4 w-4" />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/calendar:opacity-100 group-hover/calendar:visible transition-all duration-200 z-10">
+                            <a
+                                href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${new Date(event.date).toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${new Date(new Date(event.date).getTime() + 3 * 60 * 60 * 1000).toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(event.description || `Event at ${event.venue}`)}&location=${encodeURIComponent(event.venue)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+                            >
+                                📅 Google Calendar
+                            </a>
+                            <a
+                                href={`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/events/${event._id}/calendar`}
+                                download
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg border-t border-gray-100"
+                            >
+                                📥 Download iCal
+                            </a>
+                        </div>
+                    </div>
+
+                    <div className="relative group/share">
+                        <button
+                            className="flex items-center justify-center px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-300 font-medium text-sm"
+                            title="Share Event"
+                        >
+                            <Share2 className="h-4 w-4" />
+                        </button>
+
+                        {/* Share Dropdown */}
+                        <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/share:opacity-100 group-hover/share:visible transition-all duration-200 z-10">
+                            <a
+                                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(event.sourceUrl)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+                            >
+                                📘 Facebook
+                            </a>
+                            <a
+                                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${event.title}!`)}&url=${encodeURIComponent(event.sourceUrl)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 border-t border-gray-100"
+                            >
+                                🐦 Twitter
+                            </a>
+                            <a
+                                href={`https://wa.me/?text=${encodeURIComponent(`${event.title} - ${event.sourceUrl}`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg border-t border-gray-100"
+                            >
+                                💬 WhatsApp
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
