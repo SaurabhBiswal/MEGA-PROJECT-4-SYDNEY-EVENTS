@@ -1,20 +1,20 @@
 FROM node:22-alpine
 
-# Set working directory to /app (standard)
+# Set working directory
 WORKDIR /app
 
-# Copy backend package files directly to /app
-COPY backend/package*.json ./
+# We are already in the 'backend' folder context (Render Root Directory: backend)
+# So we copy package.json directly from the current context
+COPY package*.json ./
 
-# Install dependencies in /app
+# Install dependencies (including express)
 RUN npm ci --only=production
 
-# Copy all backend source files directly to /app
-# This moves 'backend/server.js' to '/app/server.js'
-COPY backend/ .
+# Copy all files from the current context (backend folder) to /app
+COPY . .
 
 # Expose port
 EXPOSE 5001
 
-# Start server (now located at /app/server.js)
+# Start server
 CMD ["node", "server.js"]
