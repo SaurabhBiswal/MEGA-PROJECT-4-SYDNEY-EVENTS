@@ -1,17 +1,19 @@
 FROM node:22-alpine
 
-# Set working directory for backend
-WORKDIR /app
+# Set working directory to backend folder
+WORKDIR /app/backend
 
-# Copy backend package files and install production dependencies
+# Copy package files first for better caching
 COPY backend/package*.json ./
+
+# Install dependencies directly in /app/backend
 RUN npm ci --only=production
 
-# Copy backend source code
+# Copy the rest of the backend code
 COPY backend/ .
 
-# Expose the port the server listens on (5001)
+# Expose port
 EXPOSE 5001
 
-# Start the backend server
+# Start server directly from the backend directory
 CMD ["node", "server.js"]
