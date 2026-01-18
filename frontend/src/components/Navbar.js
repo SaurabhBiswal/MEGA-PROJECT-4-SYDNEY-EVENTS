@@ -1,78 +1,60 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, Calendar } from 'lucide-react';
+import React, { useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Calendar, Info, LogIn, User, LogOut } from 'lucide-react';
+import AuthContext from '../context/AuthContext';
 
 const Navbar = () => {
-    const [isOpen, setIsOpen] = useState(false);
+    const { user, logout } = useContext(AuthContext);
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
 
     return (
-        <nav className="bg-white shadow-lg sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                    <div className="flex items-center">
-                        <Link to="/" className="flex items-center space-x-2">
-                            <Calendar className="h-8 w-8 text-primary-600" />
-                            <span className="text-xl font-bold text-gray-900">SydneyEvents</span>
-                        </Link>
-                    </div>
+        <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+            <div className="container mx-auto px-4">
+                <div className="flex justify-between items-center h-16">
+                    <Link to="/" className="flex items-center space-x-2">
+                        <Calendar className="h-8 w-8 text-blue-600" />
+                        <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                            SydneyEvents
+                        </span>
+                    </Link>
 
-                    {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-8">
-                        <Link to="/" className="text-gray-700 hover:text-primary-600 font-medium">
+                    <div className="flex items-center space-x-6">
+                        <Link to="/" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
                             Home
                         </Link>
-                        <Link to="/events" className="text-gray-700 hover:text-primary-600 font-medium">
-                            All Events
-                        </Link>
-                        <Link to="/about" className="text-gray-700 hover:text-primary-600 font-medium">
-                            About
+                        <Link to="/about" className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 font-medium transition-colors">
+                            <Info className="h-4 w-4" />
+                            <span>About</span>
                         </Link>
 
-                        <button className="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded-lg transition-colors">
-                            Get Started
-                        </button>
-                    </div>
-
-                    {/* Mobile menu button */}
-                    <div className="md:hidden flex items-center">
-                        <button
-                            onClick={() => setIsOpen(!isOpen)}
-                            className="text-gray-700 hover:text-gray-900"
-                        >
-                            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                        </button>
+                        {user ? (
+                            <div className="flex items-center space-x-4">
+                                <span className="text-gray-900 font-medium">Hello, {user.name}</span>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center space-x-1 text-red-600 hover:text-red-700 font-medium transition-colors"
+                                >
+                                    <LogOut className="h-4 w-4" />
+                                    <span>Logout</span>
+                                </button>
+                            </div>
+                        ) : (
+                            <Link
+                                to="/login"
+                                className="flex items-center space-x-1 bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
+                            >
+                                <LogIn className="h-4 w-4" />
+                                <span>Login</span>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>
-
-            {/* Mobile Menu */}
-            {isOpen && (
-                <div className="md:hidden">
-                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-                        <Link
-                            to="/"
-                            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            Home
-                        </Link>
-                        <Link
-                            to="/events"
-                            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            All Events
-                        </Link>
-                        <Link
-                            to="/about"
-                            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            About
-                        </Link>
-                    </div>
-                </div>
-            )}
         </nav>
     );
 };

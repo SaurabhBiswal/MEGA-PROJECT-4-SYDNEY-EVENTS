@@ -1,5 +1,7 @@
 import express from 'express';
 import Event from '../models/Event.js';
+import User from '../models/User.js';
+import { protect } from '../middleware/auth.js';
 
 
 import { createClient } from 'redis';
@@ -18,7 +20,7 @@ const redisClient = createClient({
 });
 
 redisClient.on('error', (err) => {
-    
+
     if (err.code !== 'ECONNREFUSED') console.log('Redis Client Error', err);
 });
 
@@ -37,7 +39,7 @@ const router = express.Router();
 // Get all events
 router.get('/', async (req, res) => {
     try {
-        
+
         const cacheKey = 'events_upcoming';
         try {
             const cachedData = await redisClient.get(cacheKey);
@@ -50,13 +52,13 @@ router.get('/', async (req, res) => {
             }
         } catch (e) { /* ignore cache errors */ }
 
-        
+
         const events = await Event.find({
             isActive: true,
             date: { $gte: new Date() }
         }).sort({ date: 1 });
 
-        
+
         try {
             await redisClient.set(cacheKey, JSON.stringify(events), { EX: 3600 });
         } catch (e) { /* ignore */ }
@@ -94,6 +96,49 @@ router.post('/sample', async (req, res) => {
     }
 });
 
+// @desc    Get user favorites
+// @route   GET /api/events/favorites
+// @access  Private
+router.get('/favorites', protect, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).populate('favorites');
+        res.json({ success: true, data: user.favorites });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// @desc    Toggle favorite event
+// @route   POST /api/events/:id/favorite
+// @access  Private
+router.post('/:id/favorite', protect, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        const eventId = req.params.id;
+
+        // Check if event exists
+        const event = await Event.findById(eventId);
+        if (!event) {
+            return res.status(404).json({ success: false, message: 'Event not found' });
+        }
+
+        // Check if already in favorites
+        if (user.favorites.includes(eventId)) {
+            // Remove
+            user.favorites = user.favorites.filter(id => id.toString() !== eventId);
+            await user.save();
+            return res.json({ success: true, message: 'Removed from favorites', isFavorite: false });
+        } else {
+            // Add
+            user.favorites.push(eventId);
+            await user.save();
+            return res.json({ success: true, message: 'Added to favorites', isFavorite: true });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 
 router.post('/:id/subscribe', async (req, res) => {
     try {
@@ -104,7 +149,7 @@ router.post('/:id/subscribe', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Event not found' });
         }
 
-       
+
         console.log(`User ${email} subscribed to event ${event.title}`);
 
         res.json({
