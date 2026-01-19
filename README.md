@@ -3,7 +3,9 @@
 A comprehensive, full-stack event discovery and management platform built for Sydney, Australia. It combines **real-time web scraping**, **AI-powered recommendations**, and **multi-channel notifications** to deliver a premium user experience.
 
 > **Status**: Completed (v1.0.0)
-> **Latest Deployment**: 2026
+> **Live Demo (Frontend)**: [https://sydney-events-ten.vercel.app/](https://sydney-events-ten.vercel.app/)
+> **Live API (Backend)**: [https://sydney-events-production.up.railway.app](https://sydney-events-production.up.railway.app)
+> **Latest Deployment**: January 2026
 
 ---
 
