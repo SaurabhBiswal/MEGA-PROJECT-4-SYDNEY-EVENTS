@@ -18,21 +18,20 @@ const ReviewModal = ({ event, onClose, onReviewSubmitted }) => {
     const [hoverRating, setHoverRating] = useState(0);
 
     useEffect(() => {
+        const fetchReviews = async () => {
+            try {
+                const res = await axios.get(`${API_URL}/reviews/${event._id}`);
+                if (res.data.success) {
+                    setReviews(res.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching reviews:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
         fetchReviews();
     }, [event._id]);
-
-    const fetchReviews = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/reviews/${event._id}`);
-            if (res.data.success) {
-                setReviews(res.data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching reviews:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();

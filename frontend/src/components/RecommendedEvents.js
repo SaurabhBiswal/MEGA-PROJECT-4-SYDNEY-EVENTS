@@ -14,29 +14,29 @@ const RecommendedEvents = ({ onGetTickets }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchRecommendations();
-    }, []);
-
-    const fetchRecommendations = async () => {
-        if (!token) {
-            setLoading(false);
-            return;
-        }
-
-        try {
-            const response = await axios.get(`${API_URL}/events/recommendations?limit=6`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (response.data.success) {
-                setRecommendations(response.data.data);
+        const fetchRecommendations = async () => {
+            if (!token) {
+                setLoading(false);
+                return;
             }
-        } catch (error) {
-            console.error('Error fetching recommendations:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+
+            try {
+                const response = await axios.get(`${API_URL}/events/recommendations?limit=6`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (response.data.success) {
+                    setRecommendations(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRecommendations();
+    }, [token]);
 
     if (loading) {
         return (

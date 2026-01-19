@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { User, Mail, Bell, AlertTriangle, CheckCircle, XCircle, Edit2, Save, X } from 'lucide-react';
+import { User, Edit2, Save, X } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import axios from 'axios';
 import { useSearchParams } from 'react-router-dom';
@@ -9,8 +9,7 @@ const API_URL = process.env.REACT_APP_API_URL
     : 'http://localhost:5001/api';
 
 const Profile = () => {
-    const { user, token, logout, updateProfile, login } = useContext(AuthContext);
-    const [searchParams] = useSearchParams();
+    const { user, token, login } = useContext(AuthContext);
     const [editing, setEditing] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
@@ -23,7 +22,6 @@ const Profile = () => {
         }
     });
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState(null); // For success/error messages
 
     useEffect(() => {
         if (user) {
@@ -40,16 +38,11 @@ const Profile = () => {
         }
     }, [user]);
 
-    const paymentStatus = searchParams.get('payment');
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setMessage(null);
 
         try {
             const response = await axios.put(

@@ -30,31 +30,31 @@ const Home = () => {
     });
 
     useEffect(() => {
+        const fetchEvents = async () => {
+            setLoading(true);
+            try {
+                // Build query params
+                const params = {};
+                if (filters.category !== 'All') params.category = filters.category;
+                if (filters.date !== 'any') params.date = filters.date;
+                if (filters.search) params.search = filters.search;
+
+                const response = await axios.get(`${API_URL}/events`, { params });
+                setEvents(response.data.data || []);
+            } catch (error) {
+                console.error('Error fetching events:', error);
+                setEvents([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         // Debounce search
         const timer = setTimeout(() => {
             fetchEvents();
         }, 300);
         return () => clearTimeout(timer);
     }, [filters]);
-
-    const fetchEvents = async () => {
-        setLoading(true);
-        try {
-            // Build query params
-            const params = {};
-            if (filters.category !== 'All') params.category = filters.category;
-            if (filters.date !== 'any') params.date = filters.date;
-            if (filters.search) params.search = filters.search;
-
-            const response = await axios.get(`${API_URL}/events`, { params });
-            setEvents(response.data.data || []);
-        } catch (error) {
-            console.error('Error fetching events:', error);
-            setEvents([]);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleFilterChange = (e) => {
         setFilters({ ...filters, [e.target.name]: e.target.value });

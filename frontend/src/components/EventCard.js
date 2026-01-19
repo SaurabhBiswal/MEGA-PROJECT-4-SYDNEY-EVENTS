@@ -1,5 +1,4 @@
-import React, { useContext, useState } from 'react';
-import { Calendar, MapPin, ExternalLink, Heart, Share2, Star, MessageSquare, Bell, DollarSign } from 'lucide-react';
+import { Calendar, MapPin, ExternalLink, Heart, Share2, Star, MessageSquare, Bell } from 'lucide-react';
 import { format } from 'date-fns';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
@@ -35,31 +34,7 @@ const EventCard = ({ event, onGetTickets, onOpenReviews }) => {
         }
     };
 
-    const handlePurchase = async () => {
-        if (!user) {
-            alert('Please login to buy tickets!');
-            return;
-        }
 
-        try {
-            const API_URL = process.env.REACT_APP_API_URL
-                ? `${process.env.REACT_APP_API_URL}/api`
-                : 'http://localhost:5001/api';
-
-            const res = await axios.post(
-                `${API_URL}/payments/create-checkout-session`,
-                { eventId: event._id },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            if (res.data.success && res.data.url) {
-                window.location.href = res.data.url;
-            }
-        } catch (error) {
-            console.error('Purchase error:', error);
-            alert('Failed to initiate purchase. Event might be free or sold out.');
-        }
-    };
 
     const setReminder = async () => {
         if (!user) {
@@ -87,7 +62,7 @@ const EventCard = ({ event, onGetTickets, onOpenReviews }) => {
         }
     };
 
-    const isPaid = event.price && event.price !== 'Free' && event.price !== '0' && event.price !== 0;
+
 
     return (
         <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-gray-100 flex flex-col h-full group">

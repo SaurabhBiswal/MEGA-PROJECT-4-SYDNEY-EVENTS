@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
-import { Loader2, Trash2, Plus, Edit, Calendar, MapPin, DollarSign, LayoutDashboard, BarChart, Users, X } from 'lucide-react';
+import { Loader2, Trash2, Plus, Calendar, LayoutDashboard, BarChart, Users, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL
