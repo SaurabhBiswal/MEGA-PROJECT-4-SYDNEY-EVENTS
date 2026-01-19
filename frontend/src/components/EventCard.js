@@ -1,4 +1,5 @@
 import React, { useContext } from 'react';
+import { Calendar, MapPin, ExternalLink, Heart, Share2, Star, MessageSquare, Bell } from 'lucide-react';
 import { format } from 'date-fns';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
