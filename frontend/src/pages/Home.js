@@ -73,7 +73,6 @@ const Home = () => {
         }
 
         // Open window immediately to bypass popup blocker
-        // We'll redirect this window once we get the URL
         const newWindow = window.open('', '_blank');
         if (newWindow) {
             newWindow.document.write('<div style="font-family: sans-serif; text-align: center; padding-top: 50px;">Redirecting you to the event...<br>Please wait...</div>');
@@ -86,30 +85,42 @@ const Home = () => {
                 { email, optIn }
             );
 
-            if (response.data.success) {
+            console.log('Subscribe Response:', response.data);
+            console.log('Redirect URL:', response.data.redirectUrl);
+
+            if (response.data.success && response.data.redirectUrl) {
                 if (newWindow) {
+                    console.log('Redirecting to:', response.data.redirectUrl);
                     newWindow.location.href = response.data.redirectUrl;
                 } else {
-                    // If popup blocked, try checking if direct navigation works or show alert
                     window.location.href = response.data.redirectUrl;
                 }
                 closeModal();
             } else {
+                console.error('No redirect URL in response!', response.data);
+                alert('Subscription successful but redirect URL not found. Please check the event page.');
                 if (newWindow) newWindow.close();
+                closeModal();
             }
         } catch (error) {
             console.error('Error subscribing:', error);
-            // Fallback: If API fails, still redirect user to source if available!
+            // Fallback to event sourceUrl
+            const fallbackUrl = selectedEvent?.sourceUrl;
+            console.log('Using fallback URL:', fallbackUrl);
+
             if (newWindow) {
-                if (selectedEvent?.sourceUrl) {
-                    newWindow.location.href = selectedEvent.sourceUrl;
+                if (fallbackUrl) {
+                    newWindow.location.href = fallbackUrl;
                 } else {
                     newWindow.close();
+                    alert('Could not redirect. Please visit the event page manually.');
                 }
                 closeModal();
             } else {
-                if (selectedEvent?.sourceUrl) {
-                    window.location.href = selectedEvent.sourceUrl;
+                if (fallbackUrl) {
+                    window.location.href = fallbackUrl;
+                } else {
+                    alert('Could not redirect. Please visit the event page manually.');
                 }
             }
         } finally {
