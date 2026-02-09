@@ -158,7 +158,9 @@ router.post('/:id/favorite', protect, async (req, res) => {
         }
 
         // Check if already in favorites
-        if (user.favorites.includes(eventId)) {
+        const isFavorite = user.favorites.some(id => id.toString() === eventId);
+
+        if (isFavorite) {
             // Remove
             user.favorites = user.favorites.filter(id => id.toString() !== eventId);
             return res.json({ success: true, message: 'Removed from favorites', isFavorite: false, data: user.favorites });
@@ -200,12 +202,8 @@ router.post('/:id/subscribe', async (req, res) => {
             console.error('Subscription DB error:', dbError);
             // Continue even if DB save fails to ensure user experience (redirect + email)
         }
-        // Send Email asynchronously
-        try {
-            await sendTicketConfirmationEmail(email, event);
-        } catch (e) {
-            console.error('Email sending failed', e);
-        }
+        // Send Email asynchronously (Fire and Forget - do not await)
+        sendTicketConfirmationEmail(email, event).catch(e => console.error('Email background send failed:', e));
 
         // Track interaction for ML (if user is logged in)
         if (req.user) {
