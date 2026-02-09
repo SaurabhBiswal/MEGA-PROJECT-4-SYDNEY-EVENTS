@@ -72,11 +72,21 @@ const Home = () => {
             return;
         }
 
-        // Open window immediately to bypass popup blocker
+        // 1. Open window immediately to bypass popup blocker
         const newWindow = window.open('', '_blank');
         if (newWindow) {
-            newWindow.document.write('<div style="font-family: sans-serif; text-align: center; padding-top: 50px;">Redirecting you to the event...<br>Please wait...</div>');
+            newWindow.document.write('<div style="font-family: sans-serif; text-align: center; padding-top: 100px;"><h3>Redirecting to Event...</h3><p>Please wait while we prepare your tickets.</p></div>');
         }
+
+        // 2. BACKUP REDIRECT: If API takes > 3s, just redirect anyway!
+        const backupTimer = setTimeout(() => {
+            if (newWindow && newWindow.location.href.includes('about:blank')) {
+                console.log('API taking too long, triggering backup redirect');
+                if (selectedEvent?.sourceUrl) {
+                    newWindow.location.href = selectedEvent.sourceUrl;
+                }
+            }
+        }, 3500);
 
         setSubmitting(true);
         try {
@@ -85,44 +95,39 @@ const Home = () => {
                 { email, optIn }
             );
 
+            clearTimeout(backupTimer);
             console.log('Subscribe Response:', response.data);
-            console.log('Redirect URL:', response.data.redirectUrl);
 
-            if (response.data.success && response.data.redirectUrl) {
-                if (newWindow) {
-                    console.log('Redirecting to:', response.data.redirectUrl);
-                    newWindow.location.href = response.data.redirectUrl;
+            if (newWindow) {
+                // Use response URL or fallback to selectedEvent.sourceUrl
+                const finalUrl = response.data.redirectUrl || selectedEvent?.sourceUrl;
+                if (finalUrl) {
+                    newWindow.location.href = finalUrl;
                 } else {
-                    window.location.href = response.data.redirectUrl;
+                    newWindow.close();
                 }
-                closeModal();
             } else {
-                console.error('No redirect URL in response!', response.data);
-                alert('Subscription successful but redirect URL not found. Please check the event page.');
-                if (newWindow) newWindow.close();
-                closeModal();
+                // If popup was blocked, use same window
+                const finalUrl = response.data.redirectUrl || selectedEvent?.sourceUrl;
+                if (finalUrl) window.location.href = finalUrl;
             }
-        } catch (error) {
-            console.error('Error subscribing:', error);
-            // Fallback to event sourceUrl
-            const fallbackUrl = selectedEvent?.sourceUrl;
-            console.log('Using fallback URL:', fallbackUrl);
+            closeModal();
 
+        } catch (error) {
+            clearTimeout(backupTimer);
+            console.error('Error subscribing:', error);
+
+            const fallbackUrl = selectedEvent?.sourceUrl;
             if (newWindow) {
                 if (fallbackUrl) {
                     newWindow.location.href = fallbackUrl;
                 } else {
                     newWindow.close();
-                    alert('Could not redirect. Please visit the event page manually.');
                 }
-                closeModal();
-            } else {
-                if (fallbackUrl) {
-                    window.location.href = fallbackUrl;
-                } else {
-                    alert('Could not redirect. Please visit the event page manually.');
-                }
+            } else if (fallbackUrl) {
+                window.location.href = fallbackUrl;
             }
+            closeModal();
         } finally {
             setSubmitting(false);
         }
