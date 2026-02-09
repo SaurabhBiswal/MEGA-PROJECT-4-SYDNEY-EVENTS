@@ -2,11 +2,16 @@ import nodemailer from 'nodemailer';
 
 // Create Transporter using Gmail SMTP (or any other service)
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // use SSL
     auth: {
         user: process.env.EMAIL_USER, // Your Gmail address
         pass: process.env.EMAIL_APP_PASSWORD // App Password (not login password)
-    }
+    },
+    connectionTimeout: 5000, // 5 seconds timeout
+    greetingTimeout: 5000,
+    socketTimeout: 10000
 });
 
 // Send Welcome Email

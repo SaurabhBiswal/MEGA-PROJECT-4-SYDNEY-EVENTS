@@ -149,6 +149,10 @@ router.get('/favorites', protect, async (req, res) => {
 router.post('/:id/favorite', protect, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'User not found' });
+        }
+
         const eventId = req.params.id;
 
         // Check if event exists
@@ -161,7 +165,7 @@ router.post('/:id/favorite', protect, async (req, res) => {
         if (!user.favorites) {
             user.favorites = [];
         }
-        const favoriteIndex = user.favorites.findIndex(id => id ? id.toString() === eventId : false);
+        const favoriteIndex = user.favorites.findIndex(id => id && id.toString() === eventId);
 
         if (favoriteIndex > -1) {
             // Remove
@@ -174,7 +178,13 @@ router.post('/:id/favorite', protect, async (req, res) => {
             await user.save();
 
             // Track interaction for ML - Fire and forget
-            trackInteraction(req.user.id, eventId, 'favorite').catch(err => console.error('Interaction tracking failed', err));
+            // Wrap in try-catch to be absolutely safe
+            try {
+                const { trackInteraction } = await import('../services/recommendationService.js');
+                trackInteraction(user._id, eventId, 'favorite').catch(err => console.error('Tracking failed', err));
+            } catch (trackError) {
+                console.error('Interaction tracking import failed', trackError);
+            }
 
             return res.json({ success: true, message: 'Added to favorites', isFavorite: true, data: user.favorites });
         }
@@ -231,7 +241,7 @@ router.post('/:id/subscribe', async (req, res) => {
         res.json({
             success: true,
             message: 'Successfully subscribed',
-            redirectUrl: event.sourceUrl, // Ensure this exists
+            redirectUrl: event.sourceUrl || event.url || `https://www.google.com/search?q=${encodeURIComponent(event.title)}`, // Robust fallback
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
