@@ -1,21 +1,17 @@
 import nodemailer from 'nodemailer';
 
-// Create Transporter using Gmail Service (Better for cloud/Railway)
+// Create Transporter using SendGrid (Professional & Cloud-Friendly)
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.sendgrid.net',
+    port: 587,
+    secure: false, // use STARTTLS
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_APP_PASSWORD
+        user: 'apikey', // This is always 'apikey' for SendGrid
+        pass: process.env.SENDGRID_API_KEY
     },
-    pool: true, // Use connection pooling
-    maxConnections: 1, // Minimize concurrent connection issues on Gmail
-    maxMessages: 5,
-    connectionTimeout: 20000, // Increased to 20s
+    connectionTimeout: 20000,
     greetingTimeout: 20000,
-    socketTimeout: 30000,
-    tls: {
-        rejectUnauthorized: false // Skip verification for some cloud networks
-    }
+    socketTimeout: 30000
 });
 
 // Send Welcome Email
