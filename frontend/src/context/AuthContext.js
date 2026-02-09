@@ -34,17 +34,15 @@ export const AuthProvider = ({ children }) => {
 
                     // Update with fresh data from server
                     const freshUser = { ...response.data, token: storedToken };
+                    console.log('User Auth Success [v1.2.1]');
                     setUser(freshUser);
                     localStorage.setItem('user', JSON.stringify(freshUser));
                 } catch (error) {
                     console.error('Failed to refresh user data:', error);
-                    // If token is invalid, logout
-                    if (error.response?.status === 401) {
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user');
-                        setToken(null);
-                        setUser(null);
-                        delete axios.defaults.headers.common['Authorization'];
+                    // If token is invalid or signature failed, logout immediately
+                    if (error.response?.status === 401 || error.message.includes('signature')) {
+                        logout();
+                        console.warn('Invalid session - LOGGED OUT [v1.2.1]');
                     }
                 }
             }

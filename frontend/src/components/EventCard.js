@@ -131,7 +131,8 @@ const EventCard = ({ event, onGetTickets, onOpenReviews }) => {
                             href={event.sourceUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-green-600 font-bold text-sm whitespace-nowrap ml-2 hover:underline mr-1"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-green-600 font-bold text-sm whitespace-nowrap ml-2 hover:underline mr-1 cursor-pointer z-50"
                         >
                             {event.price === 'Check Website' ? 'Check Website' : event.price}
                         </a>

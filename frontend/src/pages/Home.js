@@ -75,7 +75,17 @@ const Home = () => {
         // 1. Open window immediately to bypass popup blocker
         const newWindow = window.open('', '_blank');
         if (newWindow) {
-            newWindow.document.write('<div style="font-family: sans-serif; text-align: center; padding-top: 100px;"><h3>Redirecting to Event...</h3><p>Please wait while we prepare your tickets.</p></div>');
+            newWindow.document.write(`
+                <div style="font-family: sans-serif; text-align: center; padding-top: 100px;">
+                    <h3>Redirecting to Event...</h3>
+                    <p>Please wait while we prepare your tickets.</p>
+                    <p style="margin-top: 20px;">
+                        <a href="${selectedEvent.sourceUrl}" style="padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px;">
+                            Click here if not redirected automatically
+                        </a>
+                    </p>
+                </div>
+            `);
         }
 
         // 2. BACKUP REDIRECT: If API takes > 3s, just redirect anyway!
@@ -149,6 +159,9 @@ const Home = () => {
                 <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                     From live music to food festivals, find out what's happening in your city.
                 </p>
+                <div className="text-[10px] text-gray-300 font-mono mt-1 uppercase tracking-widest">
+                    Build: v1.2.1-Hardened | Multi-Stage Redirect System Active
+                </div>
             </div>
 
             {/* Filter Bar */}
