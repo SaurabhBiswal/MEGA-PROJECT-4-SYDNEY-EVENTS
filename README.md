@@ -2,10 +2,23 @@
 
 A comprehensive, full-stack event discovery and management platform built for Sydney, Australia. It combines **real-time web scraping**, **AI-powered recommendations**, and **multi-channel notifications** to deliver a premium user experience.
 
-> **Status**: Completed (v1.0.0)
-> **Live Demo (Frontend)**: [https://sydney-events-ten.vercel.app/](https://sydney-events-ten.vercel.app/)
-> **Live API (Backend)**: [https://sydney-events-production.up.railway.app](https://sydney-events-production.up.railway.app)
-> **Latest Deployment**: January 2026
+> **Status**: Completed (v1.2.1-Hardened) ✅
+> **Live Demo (Frontend)**: [Pending Vercel Link]
+> **Live API (Backend)**: [https://mega-project-4-sydney-events-production.up.railway.app](https://mega-project-4-sydney-events-production.up.railway.app)
+> **Build Version**: v1.2.1-Hardened (Reliability Update)
+
+---
+
+## 🏆 Assignment Compliance
+
+This project fulfills **Mandatory Assignment 1** and **Optional Assignment 2**:
+
+- [x] **A) Auto-Scraping**: Automated Puppeteer scrapers for Sydney events with DB storage.
+- [x] **B) Minimal UI**: Beautiful React-based event listing with high-speed filters.
+- [x] **C) Ticket Flow**: Email subscription + Consent + Multi-stage fail-safe redirect.
+- [x] **D) Google OAuth**: Secure authentication integrated.
+- [x] **E) Admin Dashboard**: Comprehensive event management and status tagging.
+- [x] **F) AI Assistant**: LLM-powered Telegram/Web bot for event recommendations.
 
 ---
 
