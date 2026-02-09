@@ -158,7 +158,10 @@ router.post('/:id/favorite', protect, async (req, res) => {
         }
 
         // Check if already in favorites
-        const favoriteIndex = user.favorites.findIndex(id => id.toString() === eventId);
+        if (!user.favorites) {
+            user.favorites = [];
+        }
+        const favoriteIndex = user.favorites.findIndex(id => id ? id.toString() === eventId : false);
 
         if (favoriteIndex > -1) {
             // Remove

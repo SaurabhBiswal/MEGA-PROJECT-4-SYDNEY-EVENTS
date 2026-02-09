@@ -126,9 +126,20 @@ const EventCard = ({ event, onGetTickets, onOpenReviews }) => {
                             </div>
                         )}
                     </div>
-                    <span className="text-green-600 font-bold text-sm whitespace-nowrap ml-2">
-                        {event.price}
-                    </span>
+                    {event.sourceUrl ? (
+                        <a
+                            href={event.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-green-600 font-bold text-sm whitespace-nowrap ml-2 hover:underline mr-1"
+                        >
+                            {event.price === 'Check Website' ? 'Check Website' : event.price}
+                        </a>
+                    ) : (
+                        <span className="text-green-600 font-bold text-sm whitespace-nowrap ml-2">
+                            {event.price}
+                        </span>
+                    )}
                 </div>
 
                 <div className="space-y-2 mb-4 text-sm text-gray-600 flex-grow">
