@@ -47,7 +47,11 @@ app.use('/api/reminders', reminderRoutes);
 // app.use('/api/payments', paymentRoutes);
 
 app.get('/', (req, res) => {
-    res.json({ message: 'Sydney Events API is running!' });
+    res.json({
+        message: 'Sydney Events API is running!',
+        version: '1.2.0',
+        status: 'Hardened'
+    });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
