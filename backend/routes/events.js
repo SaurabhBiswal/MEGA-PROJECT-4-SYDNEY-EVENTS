@@ -158,24 +158,26 @@ router.post('/:id/favorite', protect, async (req, res) => {
         }
 
         // Check if already in favorites
-        const isFavorite = user.favorites.some(id => id.toString() === eventId);
+        const favoriteIndex = user.favorites.findIndex(id => id.toString() === eventId);
 
-        if (isFavorite) {
+        if (favoriteIndex > -1) {
             // Remove
-            user.favorites = user.favorites.filter(id => id.toString() !== eventId);
+            user.favorites.splice(favoriteIndex, 1);
+            await user.save();
             return res.json({ success: true, message: 'Removed from favorites', isFavorite: false, data: user.favorites });
         } else {
             // Add
             user.favorites.push(eventId);
             await user.save();
 
-            // Track interaction for ML
-            trackInteraction(req.user.id, eventId, 'favorite');
+            // Track interaction for ML - Fire and forget
+            trackInteraction(req.user.id, eventId, 'favorite').catch(err => console.error('Interaction tracking failed', err));
 
             return res.json({ success: true, message: 'Added to favorites', isFavorite: true, data: user.favorites });
         }
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Favorite toggle error:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 });
 
@@ -200,20 +202,21 @@ router.post('/:id/subscribe', async (req, res) => {
             );
         } catch (dbError) {
             console.error('Subscription DB error:', dbError);
-            // Continue even if DB save fails to ensure user experience (redirect + email)
         }
-        // Send Email asynchronously (Fire and Forget - do not await)
+
+        // Send Email asynchronously (Fire and Forget)
+        // Ensure we don't await this!
         sendTicketConfirmationEmail(email, event).catch(e => console.error('Email background send failed:', e));
 
-        // Track interaction for ML (if user is logged in)
+        // Track interaction for ML (if user is logged in) - Fire and forget
         if (req.user) {
-            trackInteraction(req.user.id, req.params.id, 'ticket');
+            trackInteraction(req.user.id, req.params.id, 'ticket').catch(e => console.error('Tracking failed', e));
         }
 
         res.json({
             success: true,
             message: 'Successfully subscribed',
-            redirectUrl: event.sourceUrl,
+            redirectUrl: event.sourceUrl, // Ensure this exists
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
