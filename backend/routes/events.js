@@ -161,8 +161,7 @@ router.post('/:id/favorite', protect, async (req, res) => {
         if (user.favorites.includes(eventId)) {
             // Remove
             user.favorites = user.favorites.filter(id => id.toString() !== eventId);
-            await user.save();
-            return res.json({ success: true, message: 'Removed from favorites', isFavorite: false });
+            return res.json({ success: true, message: 'Removed from favorites', isFavorite: false, data: user.favorites });
         } else {
             // Add
             user.favorites.push(eventId);
@@ -171,7 +170,7 @@ router.post('/:id/favorite', protect, async (req, res) => {
             // Track interaction for ML
             trackInteraction(req.user.id, eventId, 'favorite');
 
-            return res.json({ success: true, message: 'Added to favorites', isFavorite: true });
+            return res.json({ success: true, message: 'Added to favorites', isFavorite: true, data: user.favorites });
         }
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -181,13 +180,26 @@ router.post('/:id/favorite', protect, async (req, res) => {
 
 router.post('/:id/subscribe', async (req, res) => {
     try {
-        const { email } = req.body;
-        const event = await Event.findById(req.params.id);
+        const { email, optIn } = req.body;
+        const eventId = req.params.id;
+        const event = await Event.findById(eventId);
 
         if (!event) {
             return res.status(404).json({ success: false, error: 'Event not found' });
         }
 
+        // Save Subscription to DB
+        try {
+            const { default: Subscription } = await import('../models/Subscription.js');
+            await Subscription.findOneAndUpdate(
+                { email, eventId },
+                { optIn, subscribedAt: new Date() },
+                { upsert: true, new: true }
+            );
+        } catch (dbError) {
+            console.error('Subscription DB error:', dbError);
+            // Continue even if DB save fails to ensure user experience (redirect + email)
+        }
         // Send Email asynchronously
         try {
             await sendTicketConfirmationEmail(email, event);

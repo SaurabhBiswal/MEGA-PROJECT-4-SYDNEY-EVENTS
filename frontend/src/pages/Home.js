@@ -75,7 +75,7 @@ const Home = () => {
         try {
             const response = await axios.post(
                 `${API_URL}/events/${selectedEvent._id}/subscribe`,
-                { email }
+                { email, optIn }
             );
 
             if (response.data.success) {
