@@ -61,7 +61,7 @@ export const sendWelcomeEmail = async (user) => {
                 <p>Thanks for joining EventPulse Sydney. We're excited to help you discover the best events in town.</p>
                 <p>You can now save your favorite events and will be the first to know when new concerts, food festivals, or shows are announced!</p>
                 <br>
-                <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}" style="background-color: #2563EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Explore Events</a>
+                <a href="${process.env.CLIENT_URL || 'https://sydneyeventslive.vercel.app'}" style="background-color: #2563EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Explore Events</a>
                 <br><br>
                 <p>Cheers,<br>The EventPulse Team</p>
             `

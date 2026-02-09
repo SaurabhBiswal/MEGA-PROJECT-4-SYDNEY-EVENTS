@@ -172,8 +172,7 @@ router.post('/forgotpassword', async (req, res) => {
         await user.save({ validateBeforeSave: false });
 
         // Create reset url
-        // In local development, it might be localhost:3000
-        const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
+        const resetUrl = `${process.env.CLIENT_URL || 'https://sydneyeventslive.vercel.app'}/reset-password/${resetToken}`;
 
         try {
             await sendPasswordResetEmail(user, resetUrl);
