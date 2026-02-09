@@ -8,7 +8,10 @@ const EventCard = ({ event, onGetTickets, onOpenReviews }) => {
     const { user, token, updateUserFavorites } = useContext(AuthContext);
 
     // Check if event is favorited
-    const isFavorite = user?.favorites?.includes(event._id);
+    // Robust check for both populated objects and ID strings
+    const isFavorite = user?.favorites?.some(f =>
+        (typeof f === 'string' ? f : f._id) === event._id
+    );
 
     const toggleFavorite = async () => {
         if (!user) {

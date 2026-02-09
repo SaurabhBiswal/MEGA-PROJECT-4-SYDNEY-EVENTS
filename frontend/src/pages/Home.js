@@ -65,10 +65,18 @@ const Home = () => {
         setShowModal(true);
     };
 
-    const handleSubmitEmail = async () => {
+    const handleSubmitEmail = async (e) => {
+        e.preventDefault();
         if (!email) {
             alert('Please enter your email address');
             return;
+        }
+
+        // Open window immediately to bypass popup blocker
+        // We'll redirect this window once we get the URL
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+            newWindow.document.write('<div style="font-family: sans-serif; text-align: center; padding-top: 50px;">Redirecting you to the event...<br>Please wait...</div>');
         }
 
         setSubmitting(true);
@@ -79,14 +87,30 @@ const Home = () => {
             );
 
             if (response.data.success) {
-                window.open(response.data.redirectUrl, '_blank');
+                if (newWindow) {
+                    newWindow.location.href = response.data.redirectUrl;
+                } else {
+                    // If popup blocked, try checking if direct navigation works or show alert
+                    window.location.href = response.data.redirectUrl;
+                }
                 closeModal();
+            } else {
+                if (newWindow) newWindow.close();
             }
         } catch (error) {
             console.error('Error subscribing:', error);
-            if (selectedEvent?.sourceUrl) {
-                window.open(selectedEvent.sourceUrl, '_blank');
+            // Fallback: If API fails, still redirect user to source if available!
+            if (newWindow) {
+                if (selectedEvent?.sourceUrl) {
+                    newWindow.location.href = selectedEvent.sourceUrl;
+                } else {
+                    newWindow.close();
+                }
                 closeModal();
+            } else {
+                if (selectedEvent?.sourceUrl) {
+                    window.location.href = selectedEvent.sourceUrl;
+                }
             }
         } finally {
             setSubmitting(false);
