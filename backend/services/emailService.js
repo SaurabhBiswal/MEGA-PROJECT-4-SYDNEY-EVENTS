@@ -141,3 +141,36 @@ export const sendReminderEmail = async (user, event) => {
         return false;
     }
 };
+
+// Send Password Reset Email
+export const sendPasswordResetEmail = async (user, resetUrl) => {
+    const mailOptions = {
+        from: `"EventPulse Sydney" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: 'Password Reset Request 🔐',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+                <h2 style="color: #2563eb; text-align: center;">Password Reset Request</h2>
+                <p>Hello ${user.name},</p>
+                <p>You are receiving this email because you (or someone else) have requested the reset of a password for your account.</p>
+                <p>Please click on the button below to complete the process:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
+                </div>
+                <p>This link will expire in 10 minutes.</p>
+                <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+                <p style="font-size: 12px; color: #6b7280; text-align: center;">EventPulse Sydney Team</p>
+            </div>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Password reset email sent to ${user.email}`);
+        return true;
+    } catch (error) {
+        console.error('Error sending password reset email:', error);
+        return false;
+    }
+};

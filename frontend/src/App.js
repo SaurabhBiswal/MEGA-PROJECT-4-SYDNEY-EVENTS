@@ -12,6 +12,8 @@ import Profile from './pages/Profile';
 import MapView from './pages/MapView';
 import ChatWidget from './components/ChatWidget';
 import AdminRoute from './components/AdminRoute';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/map" element={<MapView />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
               <Route
                 path="/admin"
                 element={
