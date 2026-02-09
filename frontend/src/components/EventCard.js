@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Calendar, MapPin, ExternalLink, Heart, Share2, Star, MessageSquare, Bell } from 'lucide-react';
 import { format } from 'date-fns';
 import axios from 'axios';
@@ -6,6 +6,7 @@ import AuthContext from '../context/AuthContext';
 
 const EventCard = ({ event, onGetTickets, onOpenReviews }) => {
     const { user, token, updateUserFavorites } = useContext(AuthContext);
+    const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
 
     // Check if event is favorited
     // Robust check for both populated objects and ID strings
@@ -19,6 +20,10 @@ const EventCard = ({ event, onGetTickets, onOpenReviews }) => {
             return;
         }
 
+        // Prevent multiple simultaneous requests
+        if (isTogglingFavorite) return;
+
+        setIsTogglingFavorite(true);
         try {
             const API_URL = process.env.REACT_APP_API_URL
                 ? `${process.env.REACT_APP_API_URL}/api`
@@ -35,6 +40,9 @@ const EventCard = ({ event, onGetTickets, onOpenReviews }) => {
             }
         } catch (error) {
             console.error('Error toggling favorite:', error);
+            alert('Failed to update favorite. Please try again.');
+        } finally {
+            setIsTogglingFavorite(false);
         }
     };
 
@@ -83,7 +91,9 @@ const EventCard = ({ event, onGetTickets, onOpenReviews }) => {
                     </span>
                     <button
                         onClick={toggleFavorite}
-                        className={`p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-colors ${isFavorite ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                        disabled={isTogglingFavorite}
+                        className={`p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-colors ${isFavorite ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
+                            } ${isTogglingFavorite ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
                     </button>
