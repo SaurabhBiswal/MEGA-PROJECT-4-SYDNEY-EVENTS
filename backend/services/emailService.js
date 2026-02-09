@@ -170,7 +170,8 @@ export const sendPasswordResetEmail = async (user, resetUrl) => {
         console.log(`Password reset email sent to ${user.email}`);
         return true;
     } catch (error) {
-        console.error('Error sending password reset email:', error);
-        return false;
+        console.error('CRITICAL: SendGrid Failed!', error.message);
+        // Throw so the route catch block can handle it
+        throw new Error(`Email failed: ${error.message}`);
     }
 };
