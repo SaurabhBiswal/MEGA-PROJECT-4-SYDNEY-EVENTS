@@ -49,7 +49,7 @@ app.use('/api/reminders', reminderRoutes);
 app.get('/', (req, res) => {
     res.json({
         message: 'Sydney Events API is running!',
-        version: '1.2.0',
+        version: '1.2.1',
         status: 'Hardened'
     });
 });
