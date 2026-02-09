@@ -205,12 +205,24 @@ router.post('/:id/subscribe', async (req, res) => {
         }
 
         // Send Email asynchronously (Fire and Forget)
-        // Ensure we don't await this!
-        sendTicketConfirmationEmail(email, event).catch(e => console.error('Email background send failed:', e));
+        // Ensure we don't await this and catch any errors to prevent server crash
+        (async () => {
+            try {
+                await sendTicketConfirmationEmail(email, event);
+            } catch (e) {
+                console.error('Email background send failed (silent):', e.message);
+            }
+        })();
 
         // Track interaction for ML (if user is logged in) - Fire and forget
         if (req.user) {
-            trackInteraction(req.user.id, req.params.id, 'ticket').catch(e => console.error('Tracking failed', e));
+            (async () => {
+                try {
+                    await trackInteraction(req.user.id, req.params.id, 'ticket');
+                } catch (e) {
+                    console.error('Tracking failed', e);
+                }
+            })();
         }
 
         res.json({
