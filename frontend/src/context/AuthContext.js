@@ -13,17 +13,46 @@ export const AuthProvider = ({ children }) => {
         : 'http://localhost:5001/api/auth';
 
     useEffect(() => {
-        // Check local storage for token
-        const storedToken = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
+        const initAuth = async () => {
+            // Check local storage for token
+            const storedToken = localStorage.getItem('token');
+            const storedUser = localStorage.getItem('user');
 
-        if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
-            axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-        }
-        setLoading(false);
-    }, []);
+            if (storedToken && storedUser) {
+                setToken(storedToken);
+                const parsedUser = JSON.parse(storedUser);
+
+                // Initialize with stored user first
+                setUser(parsedUser);
+                axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+
+                // Then refresh from server to get latest data (including favorites)
+                try {
+                    const response = await axios.get(`${API_URL}/me`, {
+                        headers: { Authorization: `Bearer ${storedToken}` }
+                    });
+
+                    // Update with fresh data from server
+                    const freshUser = { ...response.data, token: storedToken };
+                    setUser(freshUser);
+                    localStorage.setItem('user', JSON.stringify(freshUser));
+                } catch (error) {
+                    console.error('Failed to refresh user data:', error);
+                    // If token is invalid, logout
+                    if (error.response?.status === 401) {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        setToken(null);
+                        setUser(null);
+                        delete axios.defaults.headers.common['Authorization'];
+                    }
+                }
+            }
+            setLoading(false);
+        };
+
+        initAuth();
+    }, [API_URL]);
 
     const register = async (name, email, password) => {
         try {
