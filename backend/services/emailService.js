@@ -1,156 +1,160 @@
-import nodemailer from 'nodemailer';
+import axios from 'axios';
 
-// Create Transporter using SendGrid (Professional & Port 465 is often more stable on Railway)
-const transporter = nodemailer.createTransport({
-    host: 'smtp.sendgrid.net',
-    port: 465,
-    secure: true, // Use SSL/TLS for port 465
-    auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_API_KEY
-    },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 20000
-});
+/**
+ * SendGrid Web API Helper
+ * This bypasses Railway's SMTP port blocks by using HTTPS (Port 443).
+ */
+const sendEmail = async ({ to, subject, html, bcc }) => {
+    if (!process.env.SENDGRID_API_KEY) {
+        console.error('CRITICAL: SENDGRID_API_KEY is missing!');
+        throw new Error('Email configuration missing');
+    }
 
-// Validate SendGrid Key on startup
-if (!process.env.SENDGRID_API_KEY) {
-    console.warn('WARNING: SENDGRID_API_KEY is not defined in environment variables!');
-}
+    const data = {
+        personalizations: [
+            {
+                to: Array.isArray(to) ? to.map(email => ({ email })) : [{ email: to }],
+                subject: subject
+            }
+        ],
+        from: {
+            email: process.env.EMAIL_USER || 'punpunsaurabh2002@gmail.com',
+            name: 'EventPulse Sydney'
+        },
+        content: [
+            {
+                type: 'text/html',
+                value: html
+            }
+        ]
+    };
+
+    // Add BCC if provided (useful for event alerts)
+    if (bcc && bcc.length > 0) {
+        data.personalizations[0].bcc = bcc.map(email => ({ email }));
+    }
+
+    try {
+        await axios.post('https://api.sendgrid.com/v3/mail/send', data, {
+            headers: {
+                'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log(`Email sent successfully to: ${to}`);
+        return true;
+    } catch (error) {
+        const errorDetail = error.response?.data?.errors?.[0]?.message || error.message;
+        console.error('SendGrid API Error:', errorDetail);
+        throw new Error(`SendGrid API Failed: ${errorDetail}`);
+    }
+};
 
 // Send Welcome Email
 export const sendWelcomeEmail = async (user) => {
-    const mailOptions = {
-        from: `"EventPulse Sydney" <${process.env.EMAIL_USER}>`,
-        to: user.email,
-        subject: 'Welcome to EventPulse Sydney! 🎉',
-        html: `
-            <h1>Welcome, ${user.name}!</h1>
-            <p>Thanks for joining EventPulse Sydney. We're excited to help you discover the best events in town.</p>
-            <p>You can now save your favorite events and will be the first to know when new concerts, food festivals, or shows are announced!</p>
-            <br>
-            <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}" style="background-color: #2563EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Explore Events</a>
-            <br><br>
-            <p>Cheers,<br>The EventPulse Team</p>
-        `
-    };
-
     try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Welcome email sent to ${user.email}`);
-        return true;
+        return await sendEmail({
+            to: user.email,
+            subject: 'Welcome to EventPulse Sydney! 🎉',
+            html: `
+                <h1>Welcome, ${user.name}!</h1>
+                <p>Thanks for joining EventPulse Sydney. We're excited to help you discover the best events in town.</p>
+                <p>You can now save your favorite events and will be the first to know when new concerts, food festivals, or shows are announced!</p>
+                <br>
+                <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}" style="background-color: #2563EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Explore Events</a>
+                <br><br>
+                <p>Cheers,<br>The EventPulse Team</p>
+            `
+        });
     } catch (error) {
-        console.error('Error sending welcome email:', error);
+        console.error('Failed to send welcome email:', error.message);
         return false;
     }
 };
 
-// Send New Event Alert (Broadcasting to a list of users)
+// Send New Event Alert
 export const sendNewEventAlert = async (users, event) => {
-    // In production, use BCC or a bulk email service like SendGrid
-    // For this demo, we'll loop sequentially (simple but slow for many users)
-
-    // Extract user emails
     const emails = users.map(u => u.email);
-
     if (emails.length === 0) return;
 
-    const mailOptions = {
-        from: `"EventPulse Sydney" <${process.env.EMAIL_USER}>`,
-        bcc: emails, // Use BCC to hide recipients from each other
-        subject: `New Event: ${event.title} 🎟️`,
-        html: `
-            <h2>New Event Alert!</h2>
-            <img src="${event.imageUrl}" alt="${event.title}" style="max-width: 100%; border-radius: 8px;" />
-            <h3>${event.title}</h3>
-            <p><strong>Date:</strong> ${new Date(event.date).toDateString()}</p>
-            <p><strong>Venue:</strong> ${event.venue}</p>
-            <p>${event.description ? event.description.substring(0, 100) + '...' : ''}</p>
-            <br>
-            <a href="${event.sourceUrl}" style="background-color: #2563EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Get Tickets</a>
-        `
-    };
-
     try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Event alert sent for: ${event.title}`);
-        return true;
+        return await sendEmail({
+            to: emails[0], // SendGrid requires at least one 'to' even with BCC
+            bcc: emails.slice(1),
+            subject: `New Event: ${event.title} 🎟️`,
+            html: `
+                <h2>New Event Alert!</h2>
+                <img src="${event.imageUrl}" alt="${event.title}" style="max-width: 100%; border-radius: 8px;" />
+                <h3>${event.title}</h3>
+                <p><strong>Date:</strong> ${new Date(event.date).toDateString()}</p>
+                <p><strong>Venue:</strong> ${event.venue}</p>
+                <p>${event.description ? event.description.substring(0, 100) + '...' : ''}</p>
+                <br>
+                <a href="${event.sourceUrl}" style="background-color: #2563EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Get Tickets</a>
+            `
+        });
     } catch (error) {
-        console.error('Error sending event alert:', error);
+        console.error('Failed to send event alert:', error.message);
         return false;
     }
 };
 
 // Send Ticket Subscription Confirmation
 export const sendTicketConfirmationEmail = async (email, event) => {
-    const mailOptions = {
-        from: `"EventPulse Sydney" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: `Start Booking: ${event.title} 🎟️`,
-        html: `
-            <h2>You're one step away!</h2>
-            <p>You requested tickets for <strong>${event.title}</strong>.</p>
-            <img src="${event.imageUrl}" alt="${event.title}" style="max-width: 100%; border-radius: 8px; margin: 10px 0;" />
-            <p><strong>Date:</strong> ${new Date(event.date).toDateString()}</p>
-            <p><strong>Venue:</strong> ${event.venue}</p>
-            <p>Click the button below to complete your booking on the official site:</p>
-            <br>
-            <a href="${event.sourceUrl}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Proceed to Booking</a>
-            <br><br>
-            <p>Have a great time!<br>The EventPulse Team</p>
-        `
-    };
-
     try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Ticket confirmation sent to ${email}`);
-        return true;
+        return await sendEmail({
+            to: email,
+            subject: `Start Booking: ${event.title} 🎟️`,
+            html: `
+                <h2>You're one step away!</h2>
+                <p>You requested tickets for <strong>${event.title}</strong>.</p>
+                <img src="${event.imageUrl}" alt="${event.title}" style="max-width: 100%; border-radius: 8px; margin: 10px 0;" />
+                <p><strong>Date:</strong> ${new Date(event.date).toDateString()}</p>
+                <p><strong>Venue:</strong> ${event.venue}</p>
+                <p>Click the button below to complete your booking on the official site:</p>
+                <br>
+                <a href="${event.sourceUrl}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Proceed to Booking</a>
+                <br><br>
+                <p>Have a great time!<br>The EventPulse Team</p>
+            `
+        });
     } catch (error) {
-        console.error('Error sending ticket confirmation:', error);
+        console.error('Failed to send ticket confirmation:', error.message);
         return false;
     }
 };
 
 // Send Event Reminder Email
 export const sendReminderEmail = async (user, event) => {
-    const mailOptions = {
-        from: `"EventPulse Sydney" <${process.env.EMAIL_USER}>`,
-        to: user.email,
-        subject: `Reminder: ${event.title} is coming up! ⏰`,
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #2563EB;">Event Reminder ⏰</h2>
-                <p>Hi ${user.name},</p>
-                <p>This is a friendly reminder that <strong>${event.title}</strong> is happening soon!</p>
-                
-                <div style="background-color: #F3F4F6; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                    <h3 style="margin-top: 0;">${event.title}</h3>
-                    <p><strong>Date:</strong> ${new Date(event.date).toLocaleDateString()}</p>
-                    <p><strong>Time:</strong> ${event.time}</p>
-                    <p><strong>Venue:</strong> ${event.venue}</p>
-                </div>
-                
-                <p>Don't forget to check your tickets!</p>
-                <p>Best regards,<br>EventPulse Sydney Team</p>
-            </div>
-        `
-    };
-
     try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Reminder email sent to ${user.email}`);
-        return true;
+        return await sendEmail({
+            to: user.email,
+            subject: `Reminder: ${event.title} is coming up! ⏰`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #2563EB;">Event Reminder ⏰</h2>
+                    <p>Hi ${user.name},</p>
+                    <p>This is a friendly reminder that <strong>${event.title}</strong> is happening soon!</p>
+                    <div style="background-color: #F3F4F6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                        <h3 style="margin-top: 0;">${event.title}</h3>
+                        <p><strong>Date:</strong> ${new Date(event.date).toLocaleDateString()}</p>
+                        <p><strong>Time:</strong> ${event.time}</p>
+                        <p><strong>Venue:</strong> ${event.venue}</p>
+                    </div>
+                    <p>Don't forget to check your tickets!</p>
+                    <p>Best regards,<br>EventPulse Sydney Team</p>
+                </div>
+            `
+        });
     } catch (error) {
-        console.error('Error sending reminder email:', error);
+        console.error('Failed to send reminder email:', error.message);
         return false;
     }
 };
 
 // Send Password Reset Email
 export const sendPasswordResetEmail = async (user, resetUrl) => {
-    const mailOptions = {
-        from: `"EventPulse Sydney" <${process.env.EMAIL_USER}>`,
+    return await sendEmail({
         to: user.email,
         subject: 'Password Reset Request 🔐',
         html: `
@@ -168,15 +172,5 @@ export const sendPasswordResetEmail = async (user, resetUrl) => {
                 <p style="font-size: 12px; color: #6b7280; text-align: center;">EventPulse Sydney Team</p>
             </div>
         `
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Password reset email sent to ${user.email}`);
-        return true;
-    } catch (error) {
-        console.error('CRITICAL: SendGrid Failed!', error.message);
-        // Throw so the route catch block can handle it
-        throw new Error(`Email failed: ${error.message}`);
-    }
+    });
 };
