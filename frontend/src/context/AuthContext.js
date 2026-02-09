@@ -14,9 +14,9 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const initAuth = async () => {
-            // Check local storage for token
-            const storedToken = localStorage.getItem('token');
-            const storedUser = localStorage.getItem('user');
+            // Check session storage for token
+            const storedToken = sessionStorage.getItem('token');
+            const storedUser = sessionStorage.getItem('user');
 
             if (storedToken && storedUser) {
                 setToken(storedToken);
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
                     const freshUser = { ...response.data, token: storedToken };
                     console.log('User Auth Success [v1.2.1]');
                     setUser(freshUser);
-                    localStorage.setItem('user', JSON.stringify(freshUser));
+                    sessionStorage.setItem('user', JSON.stringify(freshUser));
                 } catch (error) {
                     console.error('Failed to refresh user data:', error);
                     // If token is invalid or signature failed, logout immediately
@@ -59,8 +59,8 @@ export const AuthProvider = ({ children }) => {
             setToken(res.data.token);
             setUser(res.data);
 
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(res.data));
+            sessionStorage.setItem('token', res.data.token);
+            sessionStorage.setItem('user', JSON.stringify(res.data));
 
             axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
             return { success: true };
@@ -79,8 +79,8 @@ export const AuthProvider = ({ children }) => {
             setToken(res.data.token);
             setUser(res.data);
 
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(res.data));
+            sessionStorage.setItem('token', res.data.token);
+            sessionStorage.setItem('user', JSON.stringify(res.data));
 
             axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
             return { success: true };
@@ -95,15 +95,15 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         setUser(null);
         setToken(null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];
     };
 
     const updateUserFavorites = (favorites) => {
         const updatedUser = { ...user, favorites };
         setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        sessionStorage.setItem('user', JSON.stringify(updatedUser));
     };
 
     const isAdmin = user?.role === 'admin';
