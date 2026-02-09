@@ -1,19 +1,20 @@
 import nodemailer from 'nodemailer';
 
-// Create Transporter using Gmail SMTP
+// Create Transporter using Gmail Service (Better for cloud/Railway)
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // use STARTTLS
+    service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_APP_PASSWORD
     },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 20000,
+    pool: true, // Use connection pooling
+    maxConnections: 1, // Minimize concurrent connection issues on Gmail
+    maxMessages: 5,
+    connectionTimeout: 20000, // Increased to 20s
+    greetingTimeout: 20000,
+    socketTimeout: 30000,
     tls: {
-        rejectUnauthorized: false // Help with some cloud network restrictions
+        rejectUnauthorized: false // Skip verification for some cloud networks
     }
 });
 
