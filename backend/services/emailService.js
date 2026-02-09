@@ -1,18 +1,23 @@
 import nodemailer from 'nodemailer';
 
-// Create Transporter using SendGrid (Professional & Cloud-Friendly)
+// Create Transporter using SendGrid (Professional & Port 465 is often more stable on Railway)
 const transporter = nodemailer.createTransport({
     host: 'smtp.sendgrid.net',
-    port: 587,
-    secure: false, // use STARTTLS
+    port: 465,
+    secure: true, // Use SSL/TLS for port 465
     auth: {
-        user: 'apikey', // This is always 'apikey' for SendGrid
+        user: 'apikey',
         pass: process.env.SENDGRID_API_KEY
     },
-    connectionTimeout: 20000,
-    greetingTimeout: 20000,
-    socketTimeout: 30000
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000
 });
+
+// Validate SendGrid Key on startup
+if (!process.env.SENDGRID_API_KEY) {
+    console.warn('WARNING: SENDGRID_API_KEY is not defined in environment variables!');
+}
 
 // Send Welcome Email
 export const sendWelcomeEmail = async (user) => {
